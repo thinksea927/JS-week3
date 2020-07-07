@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <title>week2</title>
+  </head>
+  <body>
+    <div class="container mt-3" id="app">
+      <div class="text-right mt-4">
+        <button class="btn btn-primary" @click="openModall('new')">建立新的產品</button>
+      </div>
+      <table class="table mt-4">
+        <thead>
+          <tr>
+            <th>分類</th>
+            <th>產品名稱</th>
+            <th>原價</th>
+            <th>售價</th>
+            <th>是否啟用</th>
+            <th>編輯</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in products" :key="item.id">
+            <td>{{ item.category}}</td>
+            <td>{{ item.title}}</td>
+            <td class="text-right">{{item.origin_price}}</td>
+            <td class="text-right">{{item.price}}</td>
+            <td><span class="text-success" v-if="item.is_enabled">啟用</span><span v-else="v-else">未啟用</span></td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-outline-primary btn-sm" @click="openModal('edit', item)">編輯</button>
+                <button class="btn btn-outline-danger btn-sm" @click="openModal('delete', item)">刪除</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- Modal-->
+      <div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+          <div class="modal-content border-0">
+            <div class="modal-header bg-dark text-white">
+              <h5 class="modal-title" id="exampleModalLabel"><span>新增產品</span></h5>
+              <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-sm-4">
+                  <div class="form-group">
+                    <label for="imageUrl">輸入圖片網址</label>
+                    <input class="form-control" id="imageUrl" type="text" placeholder="請輸入圖片連結" v-model="tempProduct.imageUrl"/>
+                  </div><img class="img-fluid" alt="" :src="tempProduct.imageUrl"/>
+                </div>
+                <div class="col-sm-8">
+                  <div class="form-group">
+                    <label for="title">標題</label>
+                    <input class="form-control" id="title" v-model="tempProduct.title" type="text" placeholder="請輸入標題"/>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label for="category">分類</label>
+                      <input class="form-control" id="category" v-model="tempProduct.category" type="text" placeholder="請輸入分類"/>
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label for="price">單位</label>
+                      <input class="form-control" id="unit" v-model="tempProduct.unit" type="unit" placeholder="請輸入單位"/>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label for="origin_price">原價</label>
+                      <input class="form-control" id="origin_price" v-model="tempProduct.origin_price" type="number" placeholder="請輸入原價"/>
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label for="price">售價</label>
+                      <input class="form-control" id="price" v-model="tempProduct.price" type="number" placeholder="請輸入售價"/>
+                    </div>
+                  </div>
+                  <hr/>
+                  <div class="form-group">
+                    <label for="description">產品描述</label>
+                    <textarea class="form-control" id="description" v-model="tempProduct.description" type="text" placeholder="請輸入產品描述">                      </textarea>
+                  </div>
+                  <div class="form-group">
+                    <label for="content">說明內容</label>
+                    <textarea class="form-control" id="description" v-model="tempProduct.content" type="text" placeholder="請輸入說明內容">                      </textarea>
+                  </div>
+                  <div class="form-group">
+                    <div class="form-check">
+                      <input class="form-check-input" id="is_enabled" v-model="tempProduct.is_enabled" type="checkbox" :true-value="1" :false-value="0"/>
+                      <label class="form-check-label" for="is_enabled">是否啟用</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary" type="button" data-dismiss="modal">取消</button>
+              <button class="btn btn-primary" type="button" @click="updateProduct">確認</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade" id="delProductModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content border-0">
+            <div class="modal-header bg-danger text-white">
+              <h5 class="modal-title" id="exampleModalLabel"><span>刪除產品</span></h5>
+              <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">是否刪除<strong class="text-danger">{{ tempProduct.title }}</strong> 商品(刪除後將無法恢復)。</div>
+            <div class="modal-footer">
+              <button class="btn btn-outline-secondary" type="button" data-dismiss="modal">取消</button>
+              <button class="btn btn-danger" type="button" @click="delProduct">確認刪除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      new Vue({
+          el: '#app',
+          data: {
+              products: [
+                  {
+                      id: 1586934917210,
+                      unit: '台',
+                      category: '掌上主機',
+                      title: 'Switch',
+                      origin_price: 20000,
+                      price: 9980,
+                      description: '想玩就玩',
+                      content: '動森太好玩惹',
+                      is_enabled: 1,
+                      imageUrl: 'https://images.unsplash.com/photo-1592107761705-30a1bbc641e7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=934&q=80',
+                  },
+                  {
+                      id: 1196934917910,
+                      unit: '台',
+                      category: '主機',
+                      title: 'PS5 Wifi',
+                      origin_price: 29999,
+                      description: '次世代超強規格',
+                      content: '我也想要換一台 PS5 Wifi',
+                      price: 9487,
+                      is_enabled: 0,
+                      imageUrl: 'https://images.unsplash.com/photo-1592107761705-30a1bbc641e7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=934&q=80',
+                  },
+      
+              ],
+              tempProduct: {},
+          },
+          methods: {
+              openModal(isNew, item){
+                  switch(isNew){
+                      case 'new':
+                          this.tempProduct = {};
+                          $('#productModal').modal('show');
+                          break;
+                      case 'edit':
+                          this.tempProduct = Object.assign({}, item);
+                          $('#productModal').modal('show');
+                          break;
+                      case 'delete':
+                          $('#delProductModal').modal('show');
+                          this.tempProduct = Object.assign({}, item);
+                          break;
+                      default:
+                          break;
+                  }
+      
+              },
+              updateProduct(){
+                  if(this.tempProduct.id){
+      
+                      this.products.forEach((item, i)=>{
+                          if(item.id === this.tempProduct.id){
+                              this.products[i] = this.tempProduct;
+                          }
+                      });
+      
+                  }else{
+      
+                      const id = new Date().getTime();
+                      this.tempProduct.id = id;
+                      this.products.push(this.tempProduct);
+      
+                  }
+      
+                  this.tempProduct = {};
+                  $('#productModal').modal('hide');
+      
+              },
+              delProduct(){
+                  if(this.tempProduct.id){
+      
+                      this.products.forEach((item, i)=>{
+                          if(item.id === this.tempProduct.id){
+                              this.products.splice(i, 1);
+                              this.tempProduct = {};
+                          }
+                      });
+                  }
+                  $('#delProductModal').modal('hide');
+              },
+      
+      
+      
+      
+      
+          },
+      
+      
+      });
+    </script>
+  </body>
+</html>
